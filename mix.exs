@@ -24,6 +24,7 @@ defmodule Continuum.MixProject do
     [
       # {:dep_from_hexpm, "~> 0.3.0"},
       # {:dep_from_git, git: "https://github.com/elixir-lang/my_dep.git", tag: "0.1.0"}
+    {:ex_unit_pride, git: "https://github.com/lpil/ex-unit-pride.git", only: :test},
     ]
   end
 end

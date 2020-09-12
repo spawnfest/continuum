@@ -1,0 +1,3 @@
+%{
+  "ex_unit_pride": {:git, "https://github.com/lpil/ex-unit-pride.git", "3ec67f775603cf4f2acee32d29a75eb08b3cb0ba", []},
+}
