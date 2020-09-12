@@ -28,7 +28,12 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
     * Dead letter Q (shareable?)
     * Transactional:  checkout, commit, rollback, timeout/awknowledge
     * Queues configurable in application tree
-    * Limits and message lifetime?
+    * Limits (message size and queue length) and message lifetime?
+
+## Strategy
+
+* http://cr.yp.to/proto/maildir.html
+* https://github.com/threez/file-queue/blob/master/lib/maildir.js
 
 ## TODO
 
