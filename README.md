@@ -28,6 +28,7 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
     * Dead letter Q (shareable?)
     * Transactional:  checkout, commit, rollback, timeout/awknowledge
     * Queues configurable in application tree
+    * Limits and message lifetime?
 
 ## TODO
 
