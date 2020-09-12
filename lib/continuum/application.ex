@@ -8,7 +8,7 @@ defmodule Continuum.Application do
   def start(_type, _args) do
     children = [
       # Starts a worker by calling: Continuum.Worker.start_link(arg)
-      # {Continuum.Worker, arg}
+      {Continuum.DeliveryCounter, [0]}
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html

@@ -37,27 +37,7 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 
 ## API
 
-* `init(config)`
-* `push(message)`
-* `pull() :: message | nil`
-* `acknowledge(message)`
-* `fail(message, reason)`
-* `length()`
 * `purge()`
-
-```
-try do
-  message = q.pull
-  Task.Supervisor.asnyc_nolink(WorkerSupervisor, fn ->
-    :timer.kill_after(...)
-    apply(m, f, [message])
-  end)
-  |> Task.await()
-rescue
-  _error ->
-    q.fail(message)
-end
-```
 
 ## TODO
 
