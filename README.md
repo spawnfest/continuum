@@ -19,3 +19,20 @@ Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_do
 and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
 be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 
+## Features
+
+* All-you-need (because you're not Google) Q in one dependency
+* Core functionality:  queuing jobs and working jobs (FIFO and durable)
+* Nice to haves
+    * Retries
+    * Dead letter Q (shareable?)
+    * Transactional:  checkout, commit, rollback, timeout/awknowledge
+    * Queues configurable in application tree
+
+## TODO
+
+* Build a Q data structure
+* Managing processes
+* Docs (this README)
+* Stress test
+* Example???  (soft realtime Twitter processing or whatever)
