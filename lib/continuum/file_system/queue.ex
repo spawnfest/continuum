@@ -6,7 +6,7 @@ defmodule Continuum.FileSystem.Queue do
   defstruct root_dir: nil,
             queue_name: nil,
             dirs: Map.new(),
-            max_retries: :infinity,
+            max_retries: 10,
             dead_letters: nil,
             max_message_bytes: 1_024 * 1_024,
             max_queued_messages: 1_000,

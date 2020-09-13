@@ -30,10 +30,7 @@ defmodule Continuum.Q do
         |> Map.from_struct()
         |> Map.keys()
       )
-      |> Keyword.put(
-        :queue_name,
-        queue_name |> Macro.underscore() |> String.replace("/", "-")
-      )
+      |> Keyword.put(:queue_name, backend_queue_name(queue_name))
       |> backend.init()
 
     :pg2.create(group_name)
@@ -72,6 +69,41 @@ defmodule Continuum.Q do
     {:ok, opts}
   end
 
+  def build_with_dead_letters(q_configs, dl_config \\ []) do
+    name = Keyword.get(dl_config, :name, DeadLetters)
+
+    root_dir =
+      Keyword.get(
+        dl_config,
+        :root_dir,
+        q_configs
+        |> hd
+        |> Keyword.fetch!(:root_dir)
+      )
+
+    dl_config =
+      Keyword.merge(
+        dl_config,
+        root_dir: root_dir,
+        name: name
+      )
+
+    [
+      {__MODULE__, dl_config}
+      | Enum.map(q_configs, fn q_config ->
+          {
+            __MODULE__,
+            Keyword.put(
+              q_config,
+              :dead_letters,
+              root_dir: root_dir,
+              queue_name: backend_queue_name(name)
+            )
+          }
+        end)
+    ]
+  end
+
   defp worker_specs(
          0,
          _queue_name,
@@ -104,5 +136,9 @@ defmodule Continuum.Q do
         id: :"worker_#{idx}"
       )
     end
+  end
+
+  defp backend_queue_name(name) do
+    name |> Macro.underscore() |> String.replace("/", "-")
   end
 end
