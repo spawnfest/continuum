@@ -48,4 +48,3 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 * Example???  (soft realtime Twitter processing or whatever)
 
 * Make init requeue
-* Fix idle worker

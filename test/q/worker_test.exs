@@ -18,8 +18,6 @@ defmodule Continuum.Q.WorkerTest do
     worker_group: worker_group,
     config: config
   } do
-    TestBackend.push(config, %{pid: self()})
-
     worker =
       start_supervised!(
         {Q.Worker,
@@ -32,7 +30,30 @@ defmodule Continuum.Q.WorkerTest do
          ]}
       )
 
+    TestBackend.push(config, %{pid: self()})
+
     GenServer.cast(worker, :pull_job)
+
+    assert_receive :response
+  end
+
+  test "check for jobs on start", %{
+    task_supervisor: task_supervisor,
+    worker_group: worker_group,
+    config: config
+  } do
+    TestBackend.push(config, %{pid: self()})
+
+    start_supervised!(
+      {Q.Worker,
+       [
+         function: &Example.send_message/1,
+         config: Map.new(config),
+         backend: TestBackend,
+         task_supervisor_name: task_supervisor,
+         group_name: worker_group
+       ]}
+    )
 
     assert_receive :response
   end
@@ -42,8 +63,6 @@ defmodule Continuum.Q.WorkerTest do
     worker_group: worker_group,
     config: config
   } do
-    TestBackend.push(config, %{pid: self()})
-
     worker =
       start_supervised!(
         {Q.Worker,
@@ -56,6 +75,8 @@ defmodule Continuum.Q.WorkerTest do
          ]}
       )
 
+    TestBackend.push(config, %{pid: self()})
+
     GenServer.cast(worker, :pull_job)
 
     assert_receive :failed
@@ -66,8 +87,6 @@ defmodule Continuum.Q.WorkerTest do
     worker_group: worker_group,
     config: config
   } do
-    TestBackend.push(config, %{pid: self()})
-
     worker =
       start_supervised!(
         {Q.Worker,
@@ -80,6 +99,8 @@ defmodule Continuum.Q.WorkerTest do
            group_name: worker_group
          ]}
       )
+
+    TestBackend.push(config, %{pid: self()})
 
     GenServer.cast(worker, :pull_job)
 

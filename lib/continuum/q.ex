@@ -30,7 +30,10 @@ defmodule Continuum.Q do
         |> Map.from_struct()
         |> Map.keys()
       )
-      |> Keyword.put(:queue_name, Macro.underscore(queue_name))
+      |> Keyword.put(
+        :queue_name,
+        queue_name |> Macro.underscore() |> String.replace("/", "-")
+      )
       |> backend.init()
 
     :pg2.create(group_name)

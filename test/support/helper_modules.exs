@@ -30,14 +30,17 @@ defmodule TestBackend do
   end
 
   def pull(config) do
-    Agent.get_and_update(:"#{config.queue_name}", fn [first | rest] -> {first, rest} end)
+    Agent.get_and_update(:"#{config.queue_name}", fn
+      [first | rest] -> {first, rest}
+      [] -> {nil, []}
+    end)
   end
 
   def length(config) do
     Agent.get(:"#{config.queue_name}", & &1) |> Kernel.length()
   end
 
-  def acknowlege(_config, _message) do
+  def acknowledge(_config, _message) do
     # this should be smarter
   end
 
