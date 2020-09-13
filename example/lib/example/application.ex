@@ -52,8 +52,6 @@ defmodule Example.Application do
   end
 
   def example(arg) do
-    ms = Enum.random(1_000..2_999)
-    :timer.sleep(ms)
     arg
   end
 

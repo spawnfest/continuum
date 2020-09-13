@@ -27,15 +27,16 @@ defmodule ExampleWeb.Telemetry do
         tags: [:queue_name],
         unit: {:native, :millisecond}
       ),
+      summary("queue.tester.per_second"),
 
       counter("queue.push.items",
         tags: [:queue_name],
       ),
 
-      summary("queue.pull.timestamp",
-        tags: [:queue_name],
-        unit: {:native, :millisecond}
-      ),
+      # summary("queue.pull.timestamp",
+      #   tags: [:queue_name],
+      #   unit: {:native, :millisecond}
+      # ),
 
 
       # Phoenix Metrics
