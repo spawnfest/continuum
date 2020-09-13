@@ -26,10 +26,10 @@ defmodule Example.StressTester do
 
     state.queues
     |> Enum.each(fn q ->
-      Enum.each(0..(500), fn _x -> Task.async(fn -> Q.push(q, "a messages") end) end)
+      Enum.each(0..500, fn _x -> Task.async(fn -> Q.push(q, "a messages") end) end)
     end)
 
-    {:noreply, %__MODULE__{state | multiplier: state.multiplier + 1}, {:continue, :queue_messages}}
+    {:noreply, %__MODULE__{state | multiplier: state.multiplier + 1},
+     {:continue, :queue_messages}}
   end
-
 end

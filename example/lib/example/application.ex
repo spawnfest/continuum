@@ -20,7 +20,7 @@ defmodule Example.Application do
         workers: 3,
         function: &example/1,
         root_dir: root_dir
-      ],
+      ]
     ]
 
     dead_letters = [workers: 1, function: &dead_example/1]
@@ -34,9 +34,8 @@ defmodule Example.Application do
           Example.StressTester,
           queues: [ExampleQueue, SomeOtherQueue]
         }
-
       ] ++
-      Continuum.Q.build_with_dead_letters(queues, dead_letters)
+        Continuum.Q.build_with_dead_letters(queues, dead_letters)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
