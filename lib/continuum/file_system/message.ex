@@ -1,25 +1,43 @@
 defmodule Continuum.FileSystem.Message do
-  @enforce_keys ~w[id payload]a
-  defstruct id: nil, payload: nil, attempts: []
+  @enforce_keys ~w[path payload]a
+  defstruct path: nil, id: nil, payload: nil, attempts: []
 
   def new(fields) do
-    message = struct!(__MODULE__, fields)
-    %__MODULE__{message | attempts: parse_flags(message.id)}
+    path = Keyword.fetch!(fields, :path)
+
+    {id, attempts} =
+      case String.split(path, ":", parts: 2) do
+        [id] ->
+          {id, []}
+
+        [id, flags] ->
+          {id, parse_flags(flags)}
+      end
+
+    struct!(__MODULE__, Keyword.merge(fields, id: id, attempts: attempts))
   end
 
-  defp parse_flags(file_name) do
-    case Regex.run(~r{:([FET]+)\z}, file_name) do
-      [_match, flags] ->
-        flags
-        |> String.graphemes
-        |> Enum.map(fn
-          "F" -> :failed
-          "E" -> :error
-          "T" -> :timeout
-        end)
+  def flag_to_suffix(message, nil) do
+    flag_to_suffix(message, :failed)
+  end
 
-      nil ->
-        []
+  def flag_to_suffix(message, flag) when flag in ~w[failed error timeout]a do
+    new_flag = flag |> to_string |> String.first() |> String.upcase()
+
+    if message.attempts == [] do
+      ":#{new_flag}"
+    else
+      new_flag
     end
+  end
+
+  defp parse_flags(flags) do
+    flags
+    |> String.graphemes()
+    |> Enum.map(fn
+      "F" -> :failed
+      "E" -> :error
+      "T" -> :timeout
+    end)
   end
 end

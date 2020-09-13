@@ -84,9 +84,9 @@ defmodule Continuum.FileSystem.QueueTest do
     Queue.push(q, :message)
 
     message = Queue.pull(q)
-    assert File.exists?(message.id)
+    assert File.exists?(message.path)
     Queue.acknowledge(q, message)
-    refute File.exists?(message.id)
+    refute File.exists?(message.path)
   end
 
   test "pulled messages can be failed with a reason flag" do
