@@ -11,9 +11,11 @@ defmodule Continuum.QueueHelpers do
 
   def unique_queue_name do
     name = "q#{System.unique_integer([:positive])}"
+
     ExUnit.Callbacks.on_exit(name, fn ->
       File.rm_rf!(Path.join(@root, name))
     end)
+
     name
   end
 end

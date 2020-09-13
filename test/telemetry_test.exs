@@ -59,6 +59,7 @@ defmodule Continuum.TelemetryTest do
 
   defp find_event(name, queue_name) do
     me = self()
+
     Agent.get(Continuum.TelemetryEvents, fn events ->
       events
       |> Map.get(me, [])

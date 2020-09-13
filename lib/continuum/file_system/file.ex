@@ -3,6 +3,7 @@ defmodule Continuum.FileSystem.File do
 
   def serialize_to_tmp_file(term, byte_limit) do
     serialized = :erlang.term_to_binary(term)
+
     if byte_size(serialized) <= byte_limit do
       tmp_file = Path.join(System.tmp_dir!(), generate_file_name())
       File.write!(tmp_file, serialized)

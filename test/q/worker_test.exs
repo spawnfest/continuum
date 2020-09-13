@@ -5,7 +5,7 @@ defmodule Continuum.Q.WorkerTest do
   setup do
     task_supervisor = TaskSupervisor
     worker_group = WorkerGroup
-    config = TestBackend.init([queue_name: "example_queue", root_dir: ""])
+    config = TestBackend.init(queue_name: "example_queue", root_dir: "")
 
     Task.Supervisor.start_link(name: TaskSupervisor)
     :pg2.create(worker_group)
@@ -13,7 +13,11 @@ defmodule Continuum.Q.WorkerTest do
     {:ok, worker_group: worker_group, task_supervisor: task_supervisor, config: config}
   end
 
-  test "can process a job", %{task_supervisor: task_supervisor, worker_group: worker_group, config: config} do
+  test "can process a job", %{
+    task_supervisor: task_supervisor,
+    worker_group: worker_group,
+    config: config
+  } do
     TestBackend.push(config, %{pid: self()})
 
     worker =
@@ -33,7 +37,11 @@ defmodule Continuum.Q.WorkerTest do
     assert_receive :response
   end
 
-  test "can fail a job", %{task_supervisor: task_supervisor, worker_group: worker_group, config: config} do
+  test "can fail a job", %{
+    task_supervisor: task_supervisor,
+    worker_group: worker_group,
+    config: config
+  } do
     TestBackend.push(config, %{pid: self()})
 
     worker =
@@ -53,7 +61,11 @@ defmodule Continuum.Q.WorkerTest do
     assert_receive :failed
   end
 
-  test "can timeout a job", %{task_supervisor: task_supervisor, worker_group: worker_group, config: config} do
+  test "can timeout a job", %{
+    task_supervisor: task_supervisor,
+    worker_group: worker_group,
+    config: config
+  } do
     TestBackend.push(config, %{pid: self()})
 
     worker =

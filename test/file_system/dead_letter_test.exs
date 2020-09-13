@@ -4,11 +4,13 @@ defmodule Continuum.FileSystem.DeadLetterTest do
   alias Continuum.FileSystem.Queue
 
   test "max retries is configurable" do
-    q = Queue.init(
-      root_dir: root_dir(),
-      queue_name: unique_queue_name(),
-      max_retries: 3
-    )
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 3
+      )
+
     Queue.push(q, :message)
 
     # first attempt
@@ -27,17 +29,21 @@ defmodule Continuum.FileSystem.DeadLetterTest do
   end
 
   test "dead messages can be sent to another queue" do
-    dead_letters = Queue.init(
-      root_dir: root_dir(),
-      queue_name: unique_queue_name(),
-      max_retries: 0
-    )
-    q = Queue.init(
-      root_dir: root_dir(),
-      queue_name: unique_queue_name(),
-      max_retries: 3,
-      dead_letters: dead_letters
-    )
+    dead_letters =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 0
+      )
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 3,
+        dead_letters: dead_letters
+      )
+
     Queue.push(q, :message)
 
     # first attempt
@@ -58,17 +64,21 @@ defmodule Continuum.FileSystem.DeadLetterTest do
   end
 
   test "messages can be manually killed" do
-    dead_letters = Queue.init(
-      root_dir: root_dir(),
-      queue_name: unique_queue_name(),
-      max_retries: 0
-    )
-    q = Queue.init(
-      root_dir: root_dir(),
-      queue_name: unique_queue_name(),
-      max_retries: 3,
-      dead_letters: dead_letters
-    )
+    dead_letters =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 0
+      )
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 3,
+        dead_letters: dead_letters
+      )
+
     Queue.push(q, :message)
 
     # first attempt

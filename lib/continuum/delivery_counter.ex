@@ -11,7 +11,7 @@ defmodule Continuum.DeliveryCounter do
         count
         |> to_string()
         |> String.pad_leading(7, "0"),
-        (if count < 9_999_999, do: count + 1, else: 0)
+        if(count < 9_999_999, do: count + 1, else: 0)
       }
     end)
   end

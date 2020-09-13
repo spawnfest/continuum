@@ -117,7 +117,7 @@ defmodule Continuum.FileSystem.QueueTest do
     assert :ok = Queue.push(q, :new_hotness)
 
     queued_dir = from_root([name, "queued"])
-    assert [file | _newer] = queued_dir |> File.ls! |> Enum.sort
+    assert [file | _newer] = queued_dir |> File.ls!() |> Enum.sort()
     [time, rest] = String.split(file, ".", parts: 2)
     rewound_time = time |> String.to_integer() |> Kernel.-(100 * 1_000)
 
@@ -173,9 +173,11 @@ defmodule Continuum.FileSystem.QueueTest do
   test "queues are FIFO" do
     name = unique_queue_name()
     q = Queue.init(root_dir: root_dir(), queue_name: name)
+
     Enum.each(1..10, fn n ->
       Queue.push(q, n)
     end)
+
     Enum.each(1..10, fn n ->
       assert Queue.pull(q).payload == n
     end)

@@ -50,7 +50,15 @@ defmodule Continuum.Q do
           id: :queue_manager
         ),
         {Task.Supervisor, name: task_supervisor_name}
-      ] ++ worker_specs(worker_count, backend_config, function, backend, task_supervisor_name, group_name)
+      ] ++
+        worker_specs(
+          worker_count,
+          backend_config,
+          function,
+          backend,
+          task_supervisor_name,
+          group_name
+        )
 
     Supervisor.start_link(children, strategy: :one_for_one, name: supervisor_name)
   end

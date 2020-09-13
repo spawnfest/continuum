@@ -70,6 +70,7 @@ defmodule Continuum.FileSystem.Queue do
           %{timestamp: message.timestamp},
           %{queue_name: q.queue_name}
         )
+
         message
       end
     else
