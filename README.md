@@ -35,21 +35,21 @@ We examined multiple strategies for building a queue on the file system, but
 settled for the "[maildir](http://cr.yp.to/proto/maildir.html)" strategies that 
 have powered email for so long.
 
-At it's core, Continuum serializes queued messages into files and then moves 
+At its core, Continuum serializes queued messages into files and then moves 
 those files from directory to directory as a means of changing status.  The 
 atomic file move is the beating heart of this operation.  Uniquely generated 
-file names based on timestamps and other criteria ensure that processing 
+file names, based on timestamps and other criteria, ensure that processing 
 directories in order maintains FIFO semantics.  We can also track some details 
 about attempted runs as a file moves through the system by appending flags to 
 its name during a move.  This flow doesn't require the use of file locks.
 
-We have placed a layer of processes on top of on top of these low-level data 
-structures to provide niceties like minimal fuss worker pools.  Application code
+We have placed a layer of processes on top of these low-level data structures 
+to provide niceties like minimal fuss worker pools.  Application code 
 transparently interacts with these processes to read and write from queues.
 
 All systems have tradeoffs and ours is no different.  The dependency on a file 
 system means this project is not useful with deployments to hosts with ephemeral
-files that are frequently blown away.
+file system that are frequently blown away.
 
 Our processes design is also currently write constrained.  We've managed to 
 reliably push 500 hundred messages a second, as you can see in the following 
