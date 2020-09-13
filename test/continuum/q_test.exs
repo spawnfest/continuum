@@ -10,7 +10,7 @@ defmodule Continuum.QTest do
          workers: 0,
          function: &Example.send_message/1,
          backend: TestBackend,
-         root_dir: "/"
+         root_dir: "/tmp"
        ]}
     )
 
@@ -21,7 +21,7 @@ defmodule Continuum.QTest do
          workers: 0,
          function: &Example.send_message/1,
          backend: TestBackend,
-         root_dir: "/"
+         root_dir: "/tmp"
        ]}
     )
 
@@ -46,7 +46,7 @@ defmodule Continuum.QTest do
            workers: worker_count,
            function: &Example.send_message/1,
            backend: TestBackend,
-           root_dir: "/"
+           root_dir: "/tmp"
          ]}
       )
 
@@ -64,7 +64,7 @@ defmodule Continuum.QTest do
          workers: 0,
          function: &Example.send_message/1,
          backend: TestBackend,
-         root_dir: "/"
+         root_dir: "/tmp"
        ]}
     )
 
@@ -75,3 +75,4 @@ defmodule Continuum.QTest do
     {:"$gen_cast", :pull_job}
   end
 end
+
