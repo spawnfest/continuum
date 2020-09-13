@@ -1,15 +1,19 @@
 defmodule Continuum.Q.Manager do
   use GenServer
 
+  @enforce_keys ~w[backend config name]a
+  defstruct backend: nil, config: nil, name: nil
+
   def init(init_arg) do
-    {:ok, init_arg}
+    manager = struct!(__MODULE__, init_arg)
+
+    {:ok, manager}
   end
 
   def start_link(opts) do
     name = Keyword.fetch!(opts, :name)
-    backend = Keyword.fetch!(opts, :backend)
-    config = Keyword.fetch!(opts, :config)
-    GenServer.start_link(__MODULE__, %{backend: backend, config: config}, name: name)
+
+    GenServer.start_link(__MODULE__, opts, name: name)
   end
 
   def handle_call({:push, message}, _from, state) do
