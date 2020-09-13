@@ -41,7 +41,7 @@ atomic file move is the beating heart of this operation.  Uniquely generated
 file names based on timestamps and other criteria ensure that processing 
 directories in order maintains FIFO semantics.  We can also track some details 
 about attempted runs as a file moves through the system by appending flags to 
-its name during a move.
+its name during a move.  This flow doesn't require the use of file locks.
 
 We have placed a layer of processes on top of on top of these low-level data 
 structures to provide niceties like minimal fuss worker pools.  Application code
@@ -55,24 +55,40 @@ Our processes design is also currently write constrained.  We've managed to
 reliably push 500 hundred messages a second, as you can see in the following 
 image.
 
+![performance graphs](https://raw.githubusercontent.com/spawnfest/continuum/master/media/early_performance.png)
+
+_To view these graphs on your own machine, start the Phoenix app in the 
+`example/` directory and navigate to Live Dashboard, Metrics, then the Queue 
+tab._
+
+We could absolutely reduce this bottleneck with more effort.  The underlying 
+data structures can support more volume, but doing so comes with new challenges 
+and 500 messages a second meets plenty of needs!
+
 ## Usage
 
 ### Installation
 
-If [available in Hex](https://hex.pm/docs/publish), the package can be installed
-by adding `continuum` to your list of dependencies in `mix.exs`:
+Until this project is on Hex, you'll probably want to play with it from a local 
+path with configuration like the following:
 
 ```elixir
 def deps do
   [
-    {:continuum, "~> 0.1.0"}
+    {:continuum, path: "../continuum"}
   ]
 end
 ```
 
-Documentation can be generated with [ExDoc](https://github.com/elixir-lang/ex_doc)
-and published on [HexDocs](https://hexdocs.pm). Once published, the docs can
-be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
+Or you can load it from [GitHub](https://github.com/spawnfest/continuum):
+
+```elixir
+def deps do
+  [
+    {:continuum, github: "spawnfest/continuum"}
+  ]
+end
+```
 
 ### Configuration
 
