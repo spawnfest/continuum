@@ -92,11 +92,64 @@ end
 
 ### Configuration
 
-FIXME
+You configure Continuum by asking it to add processes into your supervision 
+tree.  The following example builds two queues with a shared "Dead Letter" 
+queue:
+
+```elixir
+  def start(_type, _args) do
+    root_dir = Path.join([:code.priv_dir(:example), "queues"])
+
+    # setup your queues and their worker pools
+    queues = [
+      [
+        name: ExampleQueue,
+        workers: 3,
+        function: &example/1,
+        root_dir: root_dir
+      ],
+      [
+        name: SomeOtherQueue,
+        workers: 3,
+        function: &example/1,
+        root_dir: root_dir
+      ],
+    ]
+
+    # setup "Dead Letter" workers
+    dead_letters = [workers: 1, function: &dead_example/1]
+
+    children =
+      [
+        ExampleWeb.Telemetry,
+        {Phoenix.PubSub, name: Example.PubSub},
+        ExampleWeb.Endpoint,
+        {
+          Example.StressTester,
+          queues: [ExampleQueue, SomeOtherQueue]
+        }
+
+      ] ++
+        Continuum.Q.build_with_dead_letters(queues, dead_letters)  # add queues!
+
+    # See https://hexdocs.pm/elixir/Supervisor.html
+    # for other strategies and supported options
+    opts = [strategy: :one_for_one, name: Example.Supervisor]
+    Supervisor.start_link(children, opts)
+  end
+```
 
 ### Queueing and Processing Jobs
 
-FIXME
+You can queue jobs from anywhere with code like:
+
+```elixir
+Continuum.Q.push(QueueNameFromConfig, any_term_as_a_message)
+```
+
+You specify the number of `:workers` you want to run for each queue and a 
+`:function` reference they should pass messages to for working in your config.
+See the example config above.
 
 ## Team:  Irregular Apocalypse
 
