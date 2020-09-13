@@ -26,6 +26,7 @@ defmodule Continuum.Q do
     supervisor_name = Module.concat(__MODULE__, queue_name)
     task_supervisor_name = Module.concat(supervisor_name, Tasks)
     group_name = Module.concat(supervisor_name, WorkerGroup)
+    root_dir = Keyword.fetch!(opts, :root_dir)
 
     string_queue_name =
       queue_name
@@ -34,7 +35,7 @@ defmodule Continuum.Q do
       |> String.replace(".", "_")
       |> String.downcase()
 
-    backend_config = backend.init(queue_name: string_queue_name, root_dir: "")
+    backend_config = backend.init(queue_name: string_queue_name, root_dir: root_dir)
     :pg2.create(group_name)
 
     children =

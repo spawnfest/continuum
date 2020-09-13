@@ -70,7 +70,7 @@ defmodule Continuum.Q.Worker do
   end
 
   def handle_info({ref, :ok}, %{child_task: %Task{ref: ref}} = state) do
-    state.backend.acknowlege(state.config, state.message)
+    state.backend.acknowledge(state.config, state.message)
 
     {:noreply, %{state | child_task: nil, message: nil}}
   end
