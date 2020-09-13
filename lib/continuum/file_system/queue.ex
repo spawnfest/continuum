@@ -3,7 +3,11 @@ defmodule Continuum.FileSystem.Queue do
   alias Continuum.FileSystem.{Directory, File, Message}
 
   @enforce_keys ~w[root_dir queue_name]a
-  defstruct root_dir: nil, queue_name: nil, dirs: Map.new()
+  defstruct root_dir: nil,
+            queue_name: nil,
+            dirs: Map.new(),
+            max_retries: :infinity,
+            dead_letters: nil
 
   def init(config) do
     q = struct!(__MODULE__, config)
@@ -37,7 +41,27 @@ defmodule Continuum.FileSystem.Queue do
     File.delete(message.path)
   end
 
-  def fail(q, message, flag \\ nil) do
+  def fail(queue, message, flag \\ nil)
+
+  def fail(q, message, :dead) do
+    new_suffix = Message.flag_to_suffix(message, :dead)
+    Directory.move_file(message.path, q.dead_letters.dirs.queued, new_suffix)
+  end
+
+  def fail(
+        %__MODULE__{max_retries: max_retries} = q,
+        %Message{attempts: attempts} = message,
+        _flag
+      )
+      when Kernel.length(attempts) >= max_retries do
+    if q.dead_letters do
+      fail(q, message, :dead)
+    else
+      File.delete(message.path)
+    end
+  end
+
+  def fail(q, message, flag) do
     new_suffix = Message.flag_to_suffix(message, flag)
     Directory.move_file(message.path, q.dirs.queued, new_suffix)
   end

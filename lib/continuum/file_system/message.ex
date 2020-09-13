@@ -21,7 +21,8 @@ defmodule Continuum.FileSystem.Message do
     flag_to_suffix(message, :failed)
   end
 
-  def flag_to_suffix(message, flag) when flag in ~w[failed error timeout]a do
+  def flag_to_suffix(message, flag)
+  when flag in ~w[failed error timeout dead]a do
     new_flag = flag |> to_string |> String.first() |> String.upcase()
 
     if message.attempts == [] do
@@ -38,6 +39,7 @@ defmodule Continuum.FileSystem.Message do
       "F" -> :failed
       "E" -> :error
       "T" -> :timeout
+      "D" -> :dead
     end)
   end
 end

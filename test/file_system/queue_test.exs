@@ -1,8 +1,7 @@
 defmodule Continuum.FileSystem.QueueTest do
   use ExUnit.Case, async: true
+  import Continuum.QueueHelpers
   alias Continuum.FileSystem.Queue
-
-  @root Path.expand("../support/queues", __DIR__)
 
   test "queues must be configured on init" do
     assert_raise ArgumentError, ~r{\bqueue_name\b}, fn ->
@@ -14,34 +13,26 @@ defmodule Continuum.FileSystem.QueueTest do
     name = unique_queue_name()
 
     Enum.each(~w[queued pulled], fn dir ->
-      refute @root
-             |> Path.join(name)
-             |> Path.join(dir)
+      refute from_root([name, dir])
              |> File.exists?()
     end)
 
-    Queue.init(root_dir: @root, queue_name: name)
+    Queue.init(root_dir: root_dir(), queue_name: name)
 
     Enum.each(~w[queued pulled], fn dir ->
-      assert @root
-             |> Path.join(name)
-             |> Path.join(dir)
+      assert from_root([name, dir])
              |> File.exists?()
     end)
   end
 
   test "messages can be pushed into the queue" do
     name = unique_queue_name()
-    q = Queue.init(root_dir: @root, queue_name: name)
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
 
     message = {:message, %{from: "a test"}}
     Queue.push(q, message)
 
-    queued_dir =
-      @root
-      |> Path.join(name)
-      |> Path.join("queued")
-
+    queued_dir = from_root([name, "queued"])
     assert [file] = File.ls!(queued_dir)
 
     assert queued_dir
@@ -53,7 +44,7 @@ defmodule Continuum.FileSystem.QueueTest do
 
   test "messages can be pulled from the queue" do
     name = unique_queue_name()
-    q = Queue.init(root_dir: @root, queue_name: name)
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
 
     assert Queue.pull(q) == nil
 
@@ -62,11 +53,7 @@ defmodule Continuum.FileSystem.QueueTest do
 
     assert Queue.pull(q).payload == message
 
-    pulled_dir =
-      @root
-      |> Path.join(name)
-      |> Path.join("pulled")
-
+    pulled_dir = from_root([name, "pulled"])
     assert [file] = File.ls!(pulled_dir)
 
     assert pulled_dir
@@ -80,7 +67,7 @@ defmodule Continuum.FileSystem.QueueTest do
 
   test "pulled messages can be acknowledged" do
     name = unique_queue_name()
-    q = Queue.init(root_dir: @root, queue_name: name)
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
     Queue.push(q, :message)
 
     message = Queue.pull(q)
@@ -91,7 +78,7 @@ defmodule Continuum.FileSystem.QueueTest do
 
   test "pulled messages can be failed with a reason flag" do
     name = unique_queue_name()
-    q = Queue.init(root_dir: @root, queue_name: name)
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
     Queue.push(q, :message)
 
     assert pulled = Queue.pull(q)
@@ -109,18 +96,12 @@ defmodule Continuum.FileSystem.QueueTest do
 
   test "the length of the queue can be queried" do
     name = unique_queue_name()
-    q = Queue.init(root_dir: @root, queue_name: name)
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
     assert Queue.length(q) == 0
 
     Enum.each(1..10, fn n ->
       Queue.push(q, n)
       assert Queue.length(q) == n
     end)
-  end
-
-  defp unique_queue_name do
-    name = "q#{System.unique_integer([:positive])}"
-    on_exit(name, fn -> File.rm_rf!(Path.join(@root, name)) end)
-    name
   end
 end
