@@ -1,8 +1,8 @@
 defmodule Continuum.Q.Manager do
   use GenServer
 
-  @enforce_keys ~w[backend config name]a
-  defstruct backend: nil, config: nil, name: nil
+  @enforce_keys ~w[backend config name worker_group]a
+  defstruct backend: nil, config: nil, name: nil, worker_group: nil
 
   def init(init_arg) do
     manager = struct!(__MODULE__, init_arg)
@@ -18,6 +18,10 @@ defmodule Continuum.Q.Manager do
 
   def handle_call({:push, message}, _from, state) do
     state.backend.push(state.config, message)
+
+    state.worker_group
+    |> :pg2.get_local_members()
+    |> Enum.each(fn member_pid -> GenServer.cast(member_pid, :pull_job) end)
 
     {:reply, :ok, state}
   end

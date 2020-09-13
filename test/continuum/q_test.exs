@@ -49,4 +49,25 @@ defmodule Continuum.QTest do
 
     assert Supervisor.count_children(queue).workers == worker_count + 1
   end
+
+  test "broadcasts pushes to workers" do
+    :pg2.create(Continuum.Q.PotatoProcessor.WorkerGroup)
+    :pg2.join(Continuum.Q.PotatoProcessor.WorkerGroup, self())
+
+    start_supervised!(
+      {Q,
+       [
+         name: PotatoProcessor,
+         workers: 0,
+         function: &Example.send_message/1,
+         backend: TestBackend
+       ]}
+    )
+
+    message = "tater_tot"
+
+    Q.push(PotatoProcessor, message)
+
+    {:"$gen_cast", :pull_job}
+  end
 end
