@@ -16,23 +16,30 @@ defmodule Example do
 end
 
 defmodule TestBackend do
-  def init do
-    Agent.start_link(fn -> [] end, name: __MODULE__)
+  import Kernel, except: [length: 1]
+
+  def init(config) do
+    queue_name = Keyword.fetch!(config, :queue_name)
+    root_dir = Keyword.fetch!(config, :root_dir)
+
+    Agent.start_link(fn -> [] end, name: :"#{queue_name}")
+
+    %{queue_name: queue_name, root_dir: root_dir}
   end
 
-  def push(item) do
-    Agent.update(__MODULE__, fn queue -> queue ++ [item] end)
+  def push(config, item) do
+    Agent.update(:"#{config.queue_name}", fn queue -> queue ++ [item] end)
   end
 
-  def pull() do
-    Agent.get_and_update(__MODULE__, fn [first | rest] -> {first, rest} end)
+  def pull(config) do
+    Agent.get_and_update(:"#{config.queue_name}", fn [first | rest] -> {first, rest} end)
   end
 
-  def length() do
-    Agent.get(__MODULE__, & &1) |> length
+  def length(config) do
+    Agent.get(:"#{config.queue_name}", & &1) |> Kernel.length
   end
 
-  def fail(message, _reason) do
+  def fail(_config, message, _reason) do
     send(message.pid, :failed)
   end
 end
@@ -41,7 +48,7 @@ defmodule Continuum.QTest do
   use ExUnit.Case, async: true
   alias Continuum.Q
 
-  test "push an item into queue" do
+  test "push an item into different queues" do
     start_supervised!(
       {Q,
        [
@@ -52,9 +59,22 @@ defmodule Continuum.QTest do
        ]}
     )
 
+    start_supervised!(
+      {Q,
+       [
+         name: PearProcessor,
+         workers: 0,
+         function: &Example.send_message/1,
+         backend: TestBackend
+       ]}
+    )
+
     message = "tater_tot"
+    message2 = "tater_tot2"
     Q.Manager.push(PotatoProcessor, message)
+    Q.Manager.push(PearProcessor, message2)
     assert Q.Manager.queue_length(PotatoProcessor) == 1
+    assert Q.Manager.queue_length(PearProcessor) == 1
     Q.Manager.push(PotatoProcessor, message)
     assert Q.Manager.queue_length(PotatoProcessor) == 2
   end
@@ -82,17 +102,21 @@ defmodule Continuum.Q.WorkerTest do
   alias Continuum.Q
 
   test "can process a job" do
-    TestBackend.init()
-    TestBackend.push(%{pid: self()})
-    Task.Supervisor.start_link(name: SuperVisor)
+    config = [queue_name: "example_queue", root_dir: ""]
+    Task.Supervisor.start_link(name: TaskSupervisor)
+
+    config
+    |> TestBackend.init()
+    |> TestBackend.push(%{pid: self()})
 
     worker =
       start_supervised!(
         {Q.Worker,
          [
            function: &Example.send_message/1,
-           config: %{queue_name: ExampleQueue},
-           backend: TestBackend
+           config: Map.new(config),
+           backend: TestBackend,
+           task_supervisor_name: TaskSupervisor
          ]}
       )
 
@@ -102,16 +126,22 @@ defmodule Continuum.Q.WorkerTest do
   end
 
   test "can fail a job" do
-    TestBackend.init()
-    TestBackend.push(%{pid: self()})
-    Task.Supervisor.start_link(name: SuperVisor)
+    config = [queue_name: "example_queue", root_dir: ""]
+
+    Task.Supervisor.start_link(name: TaskSupervisor)
+
+    config
+    |> TestBackend.init()
+    |> TestBackend.push(%{pid: self()})
+
     worker =
       start_supervised!(
         {Q.Worker,
          [
            function: &Example.raise_error/1,
-           config: %{queue_name: ExampleQueue},
-           backend: TestBackend
+           config: Map.new(config),
+           backend: TestBackend,
+           task_supervisor_name: TaskSupervisor
          ]}
       )
 
@@ -121,18 +151,23 @@ defmodule Continuum.Q.WorkerTest do
   end
 
   test "can timeout a job" do
-    TestBackend.init()
-    TestBackend.push(%{pid: self()})
-    Task.Supervisor.start_link(name: SuperVisor)
+    config = [queue_name: "example_queue", root_dir: ""]
+
+    Task.Supervisor.start_link(name: TaskSupervisor)
+
+    config
+    |> TestBackend.init()
+    |> TestBackend.push(%{pid: self()})
 
     worker =
       start_supervised!(
         {Q.Worker,
          [
            function: &Example.take_too_long/1,
-           config: %{queue_name: ExampleQueue},
+           config: Map.new(config),
            timeout: 100,
-           backend: TestBackend
+           backend: TestBackend,
+           task_supervisor_name: TaskSupervisor
          ]}
       )
 
