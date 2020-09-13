@@ -103,10 +103,10 @@ queue:
     # setup your queues and their worker pools
     queues = [
       [
-        name: ExampleQueue,
-        workers: 3,
-        function: &example/1,
-        root_dir: root_dir
+        name: ExampleQueue,    # a unique name for this queue
+        workers: 3,            # the number of workers for this queue
+        function: &example/1,  # the function workers pass messages to
+        root_dir: root_dir     # the root directory to store queues in
       ],
       [
         name: SomeOtherQueue,
