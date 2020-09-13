@@ -1,10 +1,15 @@
 defmodule Continuum.FileSystem.File do
   alias Continuum.DeliveryCounter
 
-  def serialize_to_tmp_file(term) do
-    tmp_file = Path.join(System.tmp_dir!(), generate_file_name())
-    File.write!(tmp_file, :erlang.term_to_binary(term))
-    tmp_file
+  def serialize_to_tmp_file(term, byte_limit) do
+    serialized = :erlang.term_to_binary(term)
+    if byte_size(serialized) <= byte_limit do
+      tmp_file = Path.join(System.tmp_dir!(), generate_file_name())
+      File.write!(tmp_file, serialized)
+      {:ok, tmp_file}
+    else
+      {:error, "message too large"}
+    end
   end
 
   def deserialize_from(path) do

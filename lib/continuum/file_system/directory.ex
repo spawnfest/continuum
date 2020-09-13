@@ -12,7 +12,7 @@ defmodule Continuum.FileSystem.Directory do
   end
 
   def first_file(dir) do
-    case File.ls!(dir) do
+    case dir |> File.ls!() |> Enum.sort() do
       [first | _rest] ->
         {:ok, Path.join(dir, first)}
 

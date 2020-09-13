@@ -42,6 +42,42 @@ defmodule Continuum.FileSystem.QueueTest do
            |> Kernel.==(message)
   end
 
+  test "a message size limit is configurable" do
+    name = unique_queue_name()
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: name,
+        max_message_bytes: 500
+      )
+
+    assert :ok = Queue.push(q, "small")
+
+    assert {:error, "message too large"} =
+             Queue.push(
+               q,
+               String.duplicate("a", 1_000)
+             )
+  end
+
+  test "a queue size limit is configurable" do
+    name = unique_queue_name()
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: name,
+        max_queued_messages: 3
+      )
+
+    assert :ok = Queue.push(q, "one")
+    assert :ok = Queue.push(q, "two")
+    assert :ok = Queue.push(q, "three")
+
+    assert {:error, "queue full"} = Queue.push(q, "OMG!!!")
+  end
+
   test "messages can be pulled from the queue" do
     name = unique_queue_name()
     q = Queue.init(root_dir: root_dir(), queue_name: name)
@@ -62,6 +98,35 @@ defmodule Continuum.FileSystem.QueueTest do
            |> :erlang.binary_to_term()
            |> Kernel.==(message)
 
+    assert Queue.pull(q) == nil
+  end
+
+  test "a message lifetime is configurable" do
+    name = unique_queue_name()
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: name,
+        message_ttl_seconds: 10
+      )
+
+    assert Queue.pull(q) == nil
+
+    assert :ok = Queue.push(q, :old_n_busted)
+    assert :ok = Queue.push(q, :new_hotness)
+
+    queued_dir = from_root([name, "queued"])
+    assert [file | _newer] = queued_dir |> File.ls! |> Enum.sort
+    [time, rest] = String.split(file, ".", parts: 2)
+    rewound_time = time |> String.to_integer() |> Kernel.-(100 * 1_000)
+
+    File.rename!(
+      from_root([name, "queued", file]),
+      from_root([name, "queued", "#{rewound_time}.#{rest}"])
+    )
+
+    assert Queue.pull(q).payload == :new_hotness
     assert Queue.pull(q) == nil
   end
 

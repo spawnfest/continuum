@@ -7,7 +7,10 @@ defmodule Continuum.FileSystem.Queue do
             queue_name: nil,
             dirs: Map.new(),
             max_retries: :infinity,
-            dead_letters: nil
+            dead_letters: nil,
+            max_message_bytes: 1_024 * 1_024,
+            max_queued_messages: 1_000,
+            message_ttl_seconds: 60 * 60
 
   def init(config) do
     q = struct!(__MODULE__, config)
@@ -22,15 +25,33 @@ defmodule Continuum.FileSystem.Queue do
   end
 
   def push(q, message) do
-    tmp_file = File.serialize_to_tmp_file(message)
-    Directory.move_file(tmp_file, q.dirs.queued)
+    if Directory.file_count(q.dirs.queued) < q.max_queued_messages do
+      case File.serialize_to_tmp_file(message, q.max_message_bytes) do
+        {:ok, tmp_file} ->
+          Directory.move_file(tmp_file, q.dirs.queued)
+          :ok
+
+        error ->
+          error
+      end
+    else
+      {:error, "queue full"}
+    end
   end
 
   def pull(q) do
     with {:ok, first} <- Directory.first_file(q.dirs.queued),
          pulled_file <- Directory.move_file(first, q.dirs.pulled),
          {:ok, deserialized} <- File.deserialize_from(pulled_file) do
-      Message.new(path: pulled_file, payload: deserialized)
+      message = Message.new(path: pulled_file, payload: deserialized)
+
+      if System.system_time(:millisecond) - message.timestamp >
+           q.message_ttl_seconds * 1_000 do
+        fail(q, message, :dead)
+        pull(q)
+      else
+        message
+      end
     else
       _error ->
         nil
@@ -43,9 +64,14 @@ defmodule Continuum.FileSystem.Queue do
 
   def fail(queue, message, flag \\ nil)
 
-  def fail(q, message, :dead) do
+  def fail(%__MODULE__{dead_letters: dead_letters} = q, message, :dead)
+      when not is_nil(dead_letters) do
     new_suffix = Message.flag_to_suffix(message, :dead)
     Directory.move_file(message.path, q.dead_letters.dirs.queued, new_suffix)
+  end
+
+  def fail(_q, message, :dead) do
+    File.delete(message.path)
   end
 
   def fail(
