@@ -6,6 +6,8 @@ defmodule Example.Application do
   use Application
 
   def start(_type, _args) do
+    root_dir = Path.join([:code.priv_dir(:example), "queues"])
+
     children = [
       # Start the Telemetry supervisor
       ExampleWeb.Telemetry,
@@ -15,7 +17,23 @@ defmodule Example.Application do
       ExampleWeb.Endpoint,
       # Start a worker by calling: Example.Worker.start_link(arg)
       # {Example.Worker, arg}
-      {Continuum.Q, name: ExampleQueue, workers: 1, function: &example/1, backend: Continuum.FileSystem.Queue, root_dir: Path.join([:code.priv_dir(:example), "queues"])}
+      {
+        Continuum.Q,
+        [
+          name: DeadLetterQueue,
+          workers: 1,
+          function: &dead_example/1,
+          root_dir: root_dir
+        ] = dead_letters
+      },
+      {
+        Continuum.Q,
+        name: ExampleQueue,
+        workers: 1,
+        function: &example/1,
+        root_dir: root_dir,
+        dead_letters: dead_letters
+      }
     ]
 
     # See https://hexdocs.pm/elixir/Supervisor.html
@@ -32,6 +50,11 @@ defmodule Example.Application do
   end
 
   def example(arg) do
+    :timer.sleep(1_000)
+    arg
+  end
+
+  def dead_example(arg) do
     :timer.sleep(1_000)
     arg
   end

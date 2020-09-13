@@ -13,9 +13,14 @@ defmodule Continuum.TelemetryTest do
       source = self()
       record = {event, measurements, metadata}
 
-      Agent.update(Continuum.TelemetryEvents, fn events ->
-        Map.update(events, source, [record], fn e -> [record | e] end)
-      end)
+      try do
+        Agent.update(Continuum.TelemetryEvents, fn events ->
+          Map.update(events, source, [record], fn e -> [record | e] end)
+        end)
+      rescue
+        _error ->
+          :ignore
+      end
     end
   end
 

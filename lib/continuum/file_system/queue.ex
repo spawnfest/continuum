@@ -13,7 +13,13 @@ defmodule Continuum.FileSystem.Queue do
             message_ttl_seconds: 60 * 60
 
   def init(config) do
-    q = struct!(__MODULE__, config)
+    dead_letters =
+      case Keyword.get(config, :dead_letters) do
+        dl_config when is_list(dl_config) -> init(dl_config)
+        queue -> queue
+      end
+
+    q = struct!(__MODULE__, Keyword.put(config, :dead_letters, dead_letters))
 
     %__MODULE__{
       q

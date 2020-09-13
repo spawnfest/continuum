@@ -63,6 +63,29 @@ defmodule Continuum.FileSystem.DeadLetterTest do
     assert message.attempts == [:failed, :failed, :failed, :dead]
   end
 
+  test "dead letters can be set with the config of another queue" do
+    dead_letters = [
+      root_dir: root_dir(),
+      queue_name: unique_queue_name(),
+      max_retries: 0
+    ]
+
+    q =
+      Queue.init(
+        root_dir: root_dir(),
+        queue_name: unique_queue_name(),
+        max_retries: 0,
+        dead_letters: dead_letters
+      )
+
+    Queue.push(q, :message)
+    assert message = Queue.pull(q)
+    Queue.fail(q, message)
+
+    assert message = Queue.pull(q.dead_letters)
+    assert message.attempts == [:dead]
+  end
+
   test "messages can be manually killed" do
     dead_letters =
       Queue.init(

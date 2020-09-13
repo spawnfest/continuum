@@ -54,13 +54,13 @@ defmodule Continuum.QTest do
   end
 
   test "broadcasts pushes to workers" do
-    :pg2.create(Continuum.Q.PotatoProcessor.WorkerGroup)
-    :pg2.join(Continuum.Q.PotatoProcessor.WorkerGroup, self())
+    :pg2.create(Continuum.Q.CarrotProcessor.WorkerGroup)
+    :pg2.join(Continuum.Q.CarrotProcessor.WorkerGroup, self())
 
     start_supervised!(
       {Q,
        [
-         name: PotatoProcessor,
+         name: CarrotProcessor,
          workers: 0,
          function: &Example.send_message/1,
          backend: TestBackend,
@@ -70,9 +70,8 @@ defmodule Continuum.QTest do
 
     message = "tater_tot"
 
-    Q.push(PotatoProcessor, message)
+    Q.push(CarrotProcessor, message)
 
     {:"$gen_cast", :pull_job}
   end
 end
-

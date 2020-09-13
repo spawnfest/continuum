@@ -46,3 +46,6 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 * Docs (this README)
 * Stress test
 * Example???  (soft realtime Twitter processing or whatever)
+
+* Make init requeue
+* Fix idle worker

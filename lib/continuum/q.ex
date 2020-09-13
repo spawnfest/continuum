@@ -4,10 +4,6 @@ defmodule Continuum.Q do
   defdelegate push(queue_name, message), to: Continuum.Q.Manager
   defdelegate queue_length(queue_name), to: Continuum.Q.Manager
 
-  def init(opts) do
-    {:ok, opts}
-  end
-
   def child_spec(args) do
     queue = Keyword.fetch!(args, :name)
     id = Module.concat(__MODULE__, queue)
@@ -22,20 +18,21 @@ defmodule Continuum.Q do
     queue_name = Keyword.fetch!(opts, :name)
     worker_count = Keyword.get(opts, :workers, 1)
     function = Keyword.fetch!(opts, :function)
-    backend = Keyword.get(opts, :backend, DefaultBackend)
+    backend = Keyword.get(opts, :backend, Continuum.FileSystem.Queue)
     supervisor_name = Module.concat(__MODULE__, queue_name)
     task_supervisor_name = Module.concat(supervisor_name, Tasks)
     group_name = Module.concat(supervisor_name, WorkerGroup)
-    root_dir = Keyword.fetch!(opts, :root_dir)
 
-    string_queue_name =
-      queue_name
-      |> to_string
-      |> String.replace("Elixir.", "")
-      |> String.replace(".", "_")
-      |> String.downcase()
+    backend_config =
+      opts
+      |> Keyword.take(
+        Continuum.FileSystem.Queue.__struct__()
+        |> Map.from_struct()
+        |> Map.keys()
+      )
+      |> Keyword.put(:queue_name, Macro.underscore(queue_name))
+      |> backend.init()
 
-    backend_config = backend.init(queue_name: string_queue_name, root_dir: root_dir)
     :pg2.create(group_name)
 
     children =
@@ -61,14 +58,36 @@ defmodule Continuum.Q do
           group_name
         )
 
-    Supervisor.start_link(children, strategy: :one_for_one, name: supervisor_name)
+    Supervisor.start_link(
+      children,
+      strategy: :one_for_one,
+      name: supervisor_name
+    )
   end
 
-  defp worker_specs(0, _queue_name, _function, _backend, _task_supervisor_name, _group_name) do
+  def init(opts) do
+    {:ok, opts}
+  end
+
+  defp worker_specs(
+         0,
+         _queue_name,
+         _function,
+         _backend,
+         _task_supervisor_name,
+         _group_name
+       ) do
     []
   end
 
-  defp worker_specs(count, config, function, backend, task_supervisor_name, group_name) do
+  defp worker_specs(
+         count,
+         config,
+         function,
+         backend,
+         task_supervisor_name,
+         group_name
+       ) do
     for idx <- 1..count do
       Supervisor.child_spec(
         {Continuum.Q.Worker,
