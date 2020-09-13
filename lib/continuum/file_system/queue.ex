@@ -21,13 +21,17 @@ defmodule Continuum.FileSystem.Queue do
 
     q = struct!(__MODULE__, Keyword.put(config, :dead_letters, dead_letters))
 
-    %__MODULE__{
+    q = %__MODULE__{
       q
       | dirs:
           q.dirs
           |> Directory.setup_named([q.root_dir, q.queue_name, "queued"])
           |> Directory.setup_named([q.root_dir, q.queue_name, "pulled"])
     }
+
+    requeue_unfinished(q)
+
+    q
   end
 
   def push(q, message) do
@@ -121,5 +125,15 @@ defmodule Continuum.FileSystem.Queue do
 
   def length(q) do
     Directory.file_count(q.dirs.queued)
+  end
+
+  defp requeue_unfinished(q) do
+    q.dirs.pulled
+    |> Directory.all_files()
+    |> Enum.each(fn path ->
+      {:ok, deserialized} = File.deserialize_from(path)
+      message = Message.new(path: path, payload: deserialized)
+      fail(q, message, :timeout)
+    end)
   end
 end

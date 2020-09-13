@@ -35,10 +35,6 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 * http://cr.yp.to/proto/maildir.html
 * https://github.com/threez/file-queue/blob/master/lib/maildir.js
 
-## API
-
-* `purge()`
-
 ## TODO
 
 * Build a Q data structure
@@ -46,5 +42,3 @@ be found at [https://hexdocs.pm/continuum](https://hexdocs.pm/continuum).
 * Docs (this README)
 * Stress test
 * Example???  (soft realtime Twitter processing or whatever)
-
-* Make init requeue

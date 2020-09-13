@@ -182,4 +182,24 @@ defmodule Continuum.FileSystem.QueueTest do
       assert Queue.pull(q).payload == n
     end)
   end
+
+  test "unfinished work is requeued on restart" do
+    name = unique_queue_name()
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
+
+    Enum.each(1..10, fn n ->
+      Queue.push(q, n)
+    end)
+
+    Enum.each(1..5, fn n ->
+      assert Queue.pull(q).payload == n
+    end)
+
+    # we restart the queue with half the work in progress
+    q = Queue.init(root_dir: root_dir(), queue_name: name)
+
+    Enum.each(1..10, fn n ->
+      assert Queue.pull(q).payload == n
+    end)
+  end
 end

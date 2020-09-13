@@ -21,6 +21,13 @@ defmodule Continuum.FileSystem.Directory do
     end
   end
 
+  def all_files(dir) do
+    dir
+    |> File.ls!()
+    |> Enum.sort()
+    |> Enum.map(fn file -> Path.join(dir, file) end)
+  end
+
   def file_count(dir) do
     dir |> File.ls!() |> length()
   end
