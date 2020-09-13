@@ -1,3 +1,4 @@
 %{
   "ex_unit_pride": {:git, "https://github.com/lpil/ex-unit-pride.git", "3ec67f775603cf4f2acee32d29a75eb08b3cb0ba", []},
+  "telemetry": {:hex, :telemetry, "0.4.2", "2808c992455e08d6177322f14d3bdb6b625fbcfd233a73505870d8738a2f4599", [:rebar3], [], "hexpm", "2d1419bd9dda6a206d7b5852179511722e2b18812310d304620c7bd92a13fcef"},
 }

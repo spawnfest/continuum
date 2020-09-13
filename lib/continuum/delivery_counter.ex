@@ -6,6 +6,13 @@ defmodule Continuum.DeliveryCounter do
   end
 
   def next_count do
-    Agent.get_and_update(__MODULE__, fn count -> {count, count + 1} end)
+    Agent.get_and_update(__MODULE__, fn count ->
+      {
+        count
+        |> to_string()
+        |> String.pad_leading(7, "0"),
+        (if count < 9_999_999, do: count + 1, else: 0)
+      }
+    end)
   end
 end

@@ -25,10 +25,25 @@ defmodule Continuum.FileSystem.Queue do
   end
 
   def push(q, message) do
-    if Directory.file_count(q.dirs.queued) < q.max_queued_messages do
+    count = Directory.file_count(q.dirs.queued)
+
+    :telemetry.execute(
+      [:queue, :length],
+      %{length: count},
+      %{queue_name: q.queue_name}
+    )
+
+    if count < q.max_queued_messages do
       case File.serialize_to_tmp_file(message, q.max_message_bytes) do
         {:ok, tmp_file} ->
           Directory.move_file(tmp_file, q.dirs.queued)
+
+          :telemetry.execute(
+            [:queue, :push],
+            %{items: 1},
+            %{queue_name: q.queue_name}
+          )
+
           :ok
 
         error ->
@@ -50,6 +65,11 @@ defmodule Continuum.FileSystem.Queue do
         fail(q, message, :dead)
         pull(q)
       else
+        :telemetry.execute(
+          [:queue, :pull],
+          %{timestamp: message.timestamp},
+          %{queue_name: q.queue_name}
+        )
         message
       end
     else
