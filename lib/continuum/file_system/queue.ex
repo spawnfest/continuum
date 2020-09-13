@@ -46,15 +46,19 @@ defmodule Continuum.FileSystem.Queue do
     if count < q.max_queued_messages do
       case File.serialize_to_tmp_file(message, q.max_message_bytes) do
         {:ok, tmp_file} ->
-          Directory.move_file(tmp_file, q.dirs.queued)
+          case Directory.move_file(tmp_file, q.dirs.queued) do
+            {:ok, _new_path} ->
+              :telemetry.execute(
+                [:queue, :push],
+                %{items: 1},
+                %{queue_name: q.queue_name}
+              )
 
-          :telemetry.execute(
-            [:queue, :push],
-            %{items: 1},
-            %{queue_name: q.queue_name}
-          )
+              :ok
 
-          :ok
+            error ->
+              error
+          end
 
         error ->
           error
@@ -66,7 +70,7 @@ defmodule Continuum.FileSystem.Queue do
 
   def pull(q) do
     with {:ok, first} <- Directory.first_file(q.dirs.queued),
-         pulled_file <- Directory.move_file(first, q.dirs.pulled),
+         {:ok, pulled_file} <- Directory.move_file(first, q.dirs.pulled),
          {:ok, deserialized} <- File.deserialize_from(pulled_file) do
       message = Message.new(path: pulled_file, payload: deserialized)
 
@@ -98,7 +102,7 @@ defmodule Continuum.FileSystem.Queue do
   def fail(%__MODULE__{dead_letters: dead_letters} = q, message, :dead)
       when not is_nil(dead_letters) do
     new_suffix = Message.flag_to_suffix(message, :dead)
-    Directory.move_file(message.path, q.dead_letters.dirs.queued, new_suffix)
+    {:ok, _} = Directory.move_file(message.path, q.dead_letters.dirs.queued, new_suffix)
   end
 
   def fail(_q, message, :dead) do
@@ -120,7 +124,7 @@ defmodule Continuum.FileSystem.Queue do
 
   def fail(q, message, flag) do
     new_suffix = Message.flag_to_suffix(message, flag)
-    Directory.move_file(message.path, q.dirs.queued, new_suffix)
+    {:ok, _} = Directory.move_file(message.path, q.dirs.queued, new_suffix)
   end
 
   def length(q) do

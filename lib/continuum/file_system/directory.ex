@@ -7,8 +7,11 @@ defmodule Continuum.FileSystem.Directory do
 
   def move_file(from_path, to_dir, new_suffix \\ "") do
     new_path = Path.join(to_dir, Path.basename(from_path) <> new_suffix)
-    File.rename!(from_path, new_path)
-    new_path
+
+    case File.rename(from_path, new_path) do
+      :ok -> {:ok, new_path}
+      error -> error
+    end
   end
 
   def first_file(dir) do

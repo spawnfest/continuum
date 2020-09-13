@@ -97,7 +97,15 @@ defmodule Continuum.Q.Worker do
           :timer.kill_after(state.timeout)
 
           try do
-            state.function.(message)
+            :telemetry.span(
+              [:queue, :worker, :job_processing_time],
+              %{queue_name: state.group_name},
+              fn ->
+                result = state.function.(message)
+                {result, %{queue_name: state.group_name}}
+              end
+            )
+
             :ok
           rescue
             _error -> :error

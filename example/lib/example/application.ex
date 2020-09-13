@@ -8,33 +8,35 @@ defmodule Example.Application do
   def start(_type, _args) do
     root_dir = Path.join([:code.priv_dir(:example), "queues"])
 
-    children = [
-      # Start the Telemetry supervisor
-      ExampleWeb.Telemetry,
-      # Start the PubSub system
-      {Phoenix.PubSub, name: Example.PubSub},
-      # Start the Endpoint (http/https)
-      ExampleWeb.Endpoint,
-      # Start a worker by calling: Example.Worker.start_link(arg)
-      # {Example.Worker, arg}
-      {
-        Continuum.Q,
-        [
-          name: DeadLetterQueue,
-          workers: 1,
-          function: &dead_example/1,
-          root_dir: root_dir
-        ] = dead_letters
-      },
-      {
-        Continuum.Q,
+    queues = [
+      [
         name: ExampleQueue,
-        workers: 1,
+        workers: 3,
         function: &example/1,
-        root_dir: root_dir,
-        dead_letters: dead_letters
-      }
+        root_dir: root_dir
+      ],
+      [
+        name: SomeOtherQueue,
+        workers: 3,
+        function: &example/1,
+        root_dir: root_dir
+      ],
     ]
+
+    dead_letters = [workers: 1, function: &dead_example/1]
+
+    children =
+      [
+        ExampleWeb.Telemetry,
+        {Phoenix.PubSub, name: Example.PubSub},
+        ExampleWeb.Endpoint,
+        {
+          Example.StressTester,
+          queues: [ExampleQueue, SomeOtherQueue]
+        }
+
+      ] ++
+      Continuum.Q.build_with_dead_letters(queues, dead_letters)
 
     # See https://hexdocs.pm/elixir/Supervisor.html
     # for other strategies and supported options
@@ -50,7 +52,8 @@ defmodule Example.Application do
   end
 
   def example(arg) do
-    :timer.sleep(1_000)
+    ms = Enum.random(1_000..2_999)
+    :timer.sleep(ms)
     arg
   end
 

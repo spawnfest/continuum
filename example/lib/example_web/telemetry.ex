@@ -21,6 +21,23 @@ defmodule ExampleWeb.Telemetry do
 
   def metrics do
     [
+      # Special Continuum Metrics
+      summary("queue.length.length", tags: [:queue_name]),
+      summary("queue.worker.job_processing_time.stop.duration",
+        tags: [:queue_name],
+        unit: {:native, :millisecond}
+      ),
+
+      counter("queue.push.items",
+        tags: [:queue_name],
+      ),
+
+      summary("queue.pull.timestamp",
+        tags: [:queue_name],
+        unit: {:native, :millisecond}
+      ),
+
+
       # Phoenix Metrics
       summary("phoenix.endpoint.stop.duration",
         unit: {:native, :millisecond}
@@ -34,7 +51,7 @@ defmodule ExampleWeb.Telemetry do
       summary("vm.memory.total", unit: {:byte, :kilobyte}),
       summary("vm.total_run_queue_lengths.total"),
       summary("vm.total_run_queue_lengths.cpu"),
-      summary("vm.total_run_queue_lengths.io")
+      summary("vm.total_run_queue_lengths.io"),
     ]
   end
 
