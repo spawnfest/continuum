@@ -37,6 +37,10 @@ defmodule TestBackend do
     Agent.get(:"#{config.queue_name}", & &1) |> Kernel.length()
   end
 
+  def acknowlege(_config, _message) do
+    # this should be smarter
+  end
+
   def fail(_config, message, _reason) do
     send(message.pid, :failed)
   end

@@ -1,23 +1,19 @@
 defmodule Continuum.Q.Worker do
   use GenServer
 
-  def init(init_arg) do
-    function = Keyword.fetch!(init_arg, :function)
-    config = Keyword.fetch!(init_arg, :config)
-    backend = Keyword.fetch!(init_arg, :backend)
-    task_supervisor_name = Keyword.fetch!(init_arg, :task_supervisor_name)
-    timeout = Keyword.get(init_arg, :timeout, 5000)
+  @enforce_keys ~w[function config backend task_supervisor_name]a
+  defstruct function: nil,
+            config: nil,
+            backend: nil,
+            child_task: nil,
+            message: nil,
+            task_supervisor_name: nil,
+            timeout: 5000
 
-    {:ok,
-     %{
-       function: function,
-       config: config,
-       backend: backend,
-       timeout: timeout,
-       child_task: nil,
-       message: nil,
-       task_supervisor_name: task_supervisor_name
-     }}
+  def init(init_arg) do
+    worker = struct!(__MODULE__, init_arg)
+
+    {:ok, worker}
   end
 
   def start_link(opts) do
@@ -69,7 +65,7 @@ defmodule Continuum.Q.Worker do
   end
 
   def handle_info({ref, :ok}, %{child_task: %Task{ref: ref}} = state) do
-    # state.backend.acknowlege(state.config, state.message)
+    state.backend.acknowlege(state.config, state.message)
 
     {:noreply, %{state | child_task: nil, message: nil}}
   end
