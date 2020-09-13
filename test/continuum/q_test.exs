@@ -9,7 +9,8 @@ defmodule Continuum.QTest do
          name: PotatoProcessor,
          workers: 0,
          function: &Example.send_message/1,
-         backend: TestBackend
+         backend: TestBackend,
+         root_dir: "/"
        ]}
     )
 
@@ -19,7 +20,8 @@ defmodule Continuum.QTest do
          name: PearProcessor,
          workers: 0,
          function: &Example.send_message/1,
-         backend: TestBackend
+         backend: TestBackend,
+         root_dir: "/"
        ]}
     )
 
@@ -43,7 +45,8 @@ defmodule Continuum.QTest do
            name: TomatoProcessor,
            workers: worker_count,
            function: &Example.send_message/1,
-           backend: TestBackend
+           backend: TestBackend,
+           root_dir: "/"
          ]}
       )
 
@@ -60,7 +63,8 @@ defmodule Continuum.QTest do
          name: PotatoProcessor,
          workers: 0,
          function: &Example.send_message/1,
-         backend: TestBackend
+         backend: TestBackend,
+         root_dir: "/"
        ]}
     )
 
