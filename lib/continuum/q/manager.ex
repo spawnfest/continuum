@@ -1,4 +1,23 @@
 defmodule Continuum.Q.Manager do
+  @moduledoc """
+  Continuum.Q.Manager's purpose is to hold the name of a queue so a caller can
+  interact with it later without having to find the server.
+
+  This works through a name generated in the Continuum.Q Supervisor.
+
+  For example, the name of the Manager for ExampleQueue is:
+  `Continuum.Q.ExampleQueue.Manager`
+
+  We can then reference the queue easily using the `to_server_name` function
+  which predictably generates the named server for a queue.
+
+  In this way a caller only has to know the name of the queue they created.
+
+  A single process also ensures that the queue has only one interface and
+  operates as FIFO.  This does have a drawback in that the primary
+  bottleneck is pushing a message.
+  """
+
   use GenServer
 
   @enforce_keys ~w[backend config name worker_group]a

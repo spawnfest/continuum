@@ -33,6 +33,7 @@ defmodule Continuum.QTest do
     assert Q.queue_length(PearProcessor) == 1
     Q.push(PotatoProcessor, message)
     assert Q.queue_length(PotatoProcessor) == 2
+    assert Q.queue_length(PearProcessor) == 1
   end
 
   test "has worker pool" do

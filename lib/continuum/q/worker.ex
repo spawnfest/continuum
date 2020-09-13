@@ -1,4 +1,26 @@
 defmodule Continuum.Q.Worker do
+  @moduledoc """
+  Continuum.Q.Worker is the most industrious part of the Q library.
+
+  It is expected to be a part of a pool of workers, and belongs to a named
+  process group.
+
+  The process group name is generated in the top level Q Supervisor, and is used
+  in the Manager to broadcast when new messages are available.
+
+  If the worker is able to pull a message, and start a task then both the the
+  message and task are assigned to the state of the worker.  This prevents
+  workers that are already busy, from accepting new work.
+
+  The processing of a message happens in an unlinked supervised task.
+
+  For this reason we hold onto the task and message within the state until the
+  `DOWN` message is received from the task.
+
+  The worker uses `continue` and `handle_continue` to call back into itself and
+  find more work.
+  """
+
   use GenServer
 
   @enforce_keys ~w[function config backend task_supervisor_name group_name]a

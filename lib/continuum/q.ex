@@ -1,4 +1,18 @@
 defmodule Continuum.Q do
+  @moduledoc """
+  Continuum.Q is the Supervisor for a single named queue.
+
+  It also serves as the primary entrypoint to pushing to a queue through
+  `Continuum.Q.Push(ExampleQueue, message)`
+
+  The Q Supervisor will start a number of processes based on the provided named
+  queue. If the given queue name is `ExampleQueue` the Q supervisor will start:
+
+    1. a Q.Manager process (Q.ExampleQueue.Manager)
+    2. a Task Supervisor (Q.ExampleQueue.Tasks)
+    3. a configurable number of worker processes
+  """
+
   use Supervisor
 
   defdelegate push(queue_name, message), to: Continuum.Q.Manager
