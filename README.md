@@ -52,7 +52,7 @@ system means this project is not useful with deployments to hosts with ephemeral
 file system that are frequently blown away.
 
 Our processes design is also currently write constrained.  We've managed to 
-reliably push 500 hundred messages a second, as you can see in the following 
+reliably push 500 messages a second, as you can see in the following 
 image.
 
 ![performance graphs](https://raw.githubusercontent.com/spawnfest/continuum/master/media/early_performance.png)
